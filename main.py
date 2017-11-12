@@ -25,6 +25,7 @@ class model:
     def __init__(self):
         self.file = paths.FILE_PATH
         self.model = model_parameters.MODEL
+        self.param_search = model_parameters.PARAMETER_SEARCH
 
     def read_data(self):
         logger.info(" Reading data...")
@@ -61,13 +62,17 @@ class model:
         nb_samples = len(X_train)
         if(self.model == 'RandomForestRegressor'):
             regr = RandomForestRegressor()
-            grid_values = {'max_depth': [4,5,6], 'min_samples_leaf': [int(0.005*nb_samples), int(0.01*nb_samples), int(0.03*nb_samples)], 'n_estimators': [50,75,100,125] }
+            if(self.param_search == True):
+                grid_values = {'max_depth': [4,5,6], 'min_samples_leaf': [int(0.005*nb_samples), int(0.01*nb_samples), int(0.03*nb_samples)], 'n_estimators': [50,75,100,125] }
+       
         elif(self.model == 'SVR'):
             regr = SVR()
-            grid_values = {'C': [10, 100, 250, 500, 1000], 'gamma': [0.1, 0.01, 0.001], 'kernel': ['rbf']}
+            if(self.param_search == True):
+                grid_values = {'C': [10, 100, 250, 500, 1000], 'gamma': [0.1, 0.01, 0.001], 'kernel': ['rbf']}
 
-        # Grid Search value when possible
-        if(self.model in ['RandomForestRegressor', 'SVR']):
+
+        if(self.model in ['RandomForestRegressor', 'SVR'] and self.param_search == True):
+        	# Grid Search value when possible
             grid_clf = GridSearchCV(regr, param_grid = grid_values, scoring ='r2', cv=3)
             grid_clf.fit(X_train, y_train)
             results = grid_clf.cv_results_['mean_test_score']
@@ -75,6 +80,9 @@ class model:
             #for result, params in zip(results, grid_clf.cv_results_['params']):
             #    print("%0.3f for %r" % (result, params))
             regr = grid_clf.best_estimator_
+        elif(self.model in ['RandomForestRegressor', 'SVR'] and self.param_search == False):
+            regr.fit(X_train, y_train)
+            
         return regr
 
     def test_model(self, X_test, regr, y_test):

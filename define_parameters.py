@@ -3,4 +3,4 @@ class paths:
 
 class model_parameters:
 	MODEL = 'SVR'
-	PARAMETER_SEARCH = True
+	PARAMETER_SEARCH = False
